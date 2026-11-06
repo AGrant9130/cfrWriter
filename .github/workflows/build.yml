@@ -1,0 +1,58 @@
+name: Test and build (Windows)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:      # lets you run it by hand from the Actions tab
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Build one-folder app
+        run: pyinstaller --noconfirm cfrWriter.spec
+
+      - name: Smoke test (the app must start and stay running)
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $env:CFRWRITER_HOME = Join-Path $env:RUNNER_TEMP "cfrwriter-smoke"
+          $p = Start-Process -FilePath "dist\cfrWriter\cfrWriter.exe" -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) { throw "cfrWriter.exe exited early with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+
+      - name: Report size and zip
+        shell: pwsh
+        run: |
+          $mb = (Get-ChildItem dist\cfrWriter -Recurse -File | Measure-Object Length -Sum).Sum / 1MB
+          "Built folder size: {0:N1} MB" -f $mb | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          "Largest files in the build:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          Get-ChildItem dist\cfrWriter -Recurse -File | Sort-Object Length -Descending | Select-Object -First 15 |
+            ForEach-Object { "- {0:N1} MB  {1}" -f ($_.Length / 1MB), $_.FullName.Substring($_.FullName.IndexOf("dist\cfrWriter") + 15) } |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          Compress-Archive -Path dist\cfrWriter -DestinationPath cfrWriter-windows.zip
+          $zmb = (Get-Item cfrWriter-windows.zip).Length / 1MB
+          "Zip size: {0:N1} MB" -f $zmb | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cfrWriter-windows
+          path: cfrWriter-windows.zip
+          if-no-files-found: error

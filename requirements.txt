@@ -1,0 +1,6 @@
+# Runtime: only PySide6 (the Qt6 bindings). Everything else is the Python standard library.
+PySide6-Essentials>=6.7
+
+# Development / packaging
+pytest>=8
+pyinstaller>=6.6

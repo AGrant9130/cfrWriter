@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments (create your own: python -m venv .venv)
+.venv/
+.venv-*/
+venv/
+
+# PyInstaller output
+build/
+dist/
+
+# Local reference material (customer report samples; keep out of the repo)
+Examples/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
