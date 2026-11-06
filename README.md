@@ -19,6 +19,9 @@ On a Windows PC with Python 3.10+, double-click or run `build.bat`. The result i
 Nothing is written to the registry or the install folder. Settings live in
 `%APPDATA%\cfrWriter\settings.json` (plus `logo.png` if a custom logo is chosen).
 
+For your own logo, use a landscape PNG about 800 × 400 px with a transparent background; it prints
+about 2 inches wide, and images wider than 900 px are shrunk automatically.
+
 ## For reviewers
 
 A quick map of what the app touches, so it is easy to audit. Each point below comes from reading

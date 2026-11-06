@@ -200,6 +200,11 @@ class SettingsDialog(QDialog):
         lg.addLayout(btns)
         lg.addStretch(1)
         f.addRow("Logo", logo_box)
+        logo_hint = QLabel("Best: a landscape PNG about 800 × 400 px with a transparent background. "
+                           "It prints about 2 inches wide; larger images are shrunk automatically.")
+        logo_hint.setWordWrap(True)
+        logo_hint.setStyleSheet("color: #5b6472;")
+        f.addRow("", logo_hint)
 
         self.accent_auto = QCheckBox("Pick automatically from the logo")
         self.accent_swatch = QPushButton("Choose color…")
