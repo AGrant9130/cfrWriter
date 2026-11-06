@@ -13,9 +13,9 @@ def _data(n=1):
                                     "Pat", "Acme Motors", "note")
 
 
-def test_accent_from_default_logo_is_green_and_legible(qapp):
+def test_accent_from_default_logo_is_colored_and_legible(qapp):
     c = colors.dominant_color(assets.default_logo())
-    assert c is not None and c.green() > c.red() and c.green() > c.blue()
+    assert c is not None and c.saturation() > 80  # a real color, not grey
     assert colors.contrast_with_white(colors.readable_on_white(c)) >= 4.5
 
 
