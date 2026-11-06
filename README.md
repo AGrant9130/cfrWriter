@@ -19,6 +19,35 @@ On a Windows PC with Python 3.10+, double-click or run `build.bat`. The result i
 Nothing is written to the registry or the install folder. Settings live in
 `%APPDATA%\cfrWriter\settings.json` (plus `logo.png` if a custom logo is chosen).
 
+## For reviewers
+
+A quick map of what the app touches, so it is easy to audit. Each point below comes from reading
+the source; please verify it yourself.
+
+- **Network:** none. The code imports no networking modules (`socket`, `urllib`, `http`, Qt
+  network classes), and nothing is downloaded or uploaded at run time.
+- **Subprocesses and dynamic code:** none (`subprocess`, `eval`, `exec` and `pickle` are not used in
+  the app; `subprocess` appears only in a test).
+- **Dependencies:** the only runtime dependency is `PySide6-Essentials` (Qt 6 bindings); everything
+  else is the Python standard library. `pytest` and `pyinstaller` are for development only.
+- **Files read:** the CSV log you choose, the settings file, and the logo or settings bundle you
+  explicitly import. Settings and bundles are parsed as JSON (data only, no code is executed).
+- **Files written:**
+  - PDF reports, into the output folder set in Settings (default `~/Documents/Forming Reports`).
+    Existing files are never overwritten (`cfrwriter/formatting.py`).
+  - `settings.json` and optionally `logo.png` in the per-user settings folder
+    (`%APPDATA%\cfrWriter` on Windows; `CFRWRITER_HOME` overrides it).
+  - A settings bundle, only when you choose Export settings.
+- **Drive scanning:** "Find log on USB drive" lists removable drives (`GetDriveTypeW` on Windows,
+  `/media` and `/mnt` elsewhere) and looks for CSV files. It reads only; it never writes to the drive.
+- **Opening files:** the "Open PDF" and "Open folder" buttons hand a local path to the operating
+  system's default handler (`QDesktopServices.openUrl`).
+- **Windows-only call:** `ctypes` is used once, for `GetLogicalDrives` and `GetDriveTypeW` in
+  `cfrwriter/logdata.py`.
+- **Registry and install folder:** not touched.
+- **Build:** `.github/workflows/build.yml` runs the tests, builds with PyInstaller using
+  `cfrWriter.spec`, and uploads the zip as a workflow artifact. It requests no secrets.
+
 ## Layout
 
 | Path | Purpose |
