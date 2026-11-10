@@ -27,6 +27,10 @@ def qapp():
     from cfrwriter import assets
     assets.load_fonts()
     yield app
+    # A test that copied something (the share button) leaves a QMimeData on the system clipboard; on
+    # Windows that OLE object outliving the QApplication also crashes the process at exit.
+    from PySide6.QtGui import QGuiApplication
+    QGuiApplication.clipboard().clear()
     # Destroy every window while the QApplication still exists. If widgets outlive it, Python
     # tears them down afterwards and the process crashes at exit (a non-zero exit code that
     # fails CI even though every test passed).
