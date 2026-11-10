@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#1f4e79"/>
+  <!-- report page with folded corner -->
+  <path d="M78 44h66l44 44v118a10 10 0 0 1-10 10H78a10 10 0 0 1-10-10V54a10 10 0 0 1 10-10z" fill="#ffffff"/>
+  <path d="M144 44v34a10 10 0 0 0 10 10h34z" fill="#bcd0e4"/>
+  <!-- data trace -->
+  <path d="M86 166h22l12-38 20 62 14-40h22" fill="none" stroke="#2f7fc1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- text lines -->
+  <rect x="86" y="100" width="40" height="8" rx="4" fill="#9db4cb"/>
+  <rect x="86" y="214" width="84" height="8" rx="4" fill="#9db4cb" transform="translate(0 -8)"/>
+</svg>

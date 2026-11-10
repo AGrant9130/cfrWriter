@@ -20,3 +20,4 @@ Examples/
 .idea/
 .DS_Store
 Thumbs.db
+install-desktop-entry.sh
