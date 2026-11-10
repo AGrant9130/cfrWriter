@@ -173,9 +173,10 @@ class MainWindow(QMainWindow):
         self.folder_btn.clicked.connect(lambda: self._open(self.last_pdf.parent if self.last_pdf else None))
         self.print_btn.setDefault(True)
         actions.addWidget(self.new_btn)
-        actions.addWidget(self.problem_label, 1)
+        actions.addStretch(1)
         for b in (self.open_btn, self.folder_btn, self.share_btn, self.save_btn, self.print_btn):
             actions.addWidget(b)
+        lv.addWidget(self.problem_label)
         lv.addLayout(actions)
         split.addWidget(left)
 
