@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QImage
@@ -222,5 +223,5 @@ def test_share_copies_pdf_and_opens_email(qapp, tmp_path, monkeypatch):
     w.share_report()
     assert w.last_pdf and w.last_pdf.exists()
     urls = QGuiApplication.clipboard().mimeData().urls()
-    assert [u.toLocalFile() for u in urls] == [str(w.last_pdf)]
+    assert [Path(u.toLocalFile()) for u in urls] == [Path(w.last_pdf)]
     assert len(opened) == 1 and opened[0].startswith("mailto:?subject=") and "Acme%20Motors" in opened[0]
