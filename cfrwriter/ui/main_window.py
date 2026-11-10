@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from datetime import datetime
+from urllib.parse import quote
 from pathlib import Path
 
-from PySide6.QtCore import QMarginsF, QSignalBlocker, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAction, QDesktopServices, QKeySequence, QPageLayout, QPalette, QPixmap
+from PySide6.QtCore import QMarginsF, QMimeData, QSignalBlocker, Qt, QTimer, QUrl, Signal
+from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QKeySequence, QPageLayout, QPalette, QPixmap
 from PySide6.QtPrintSupport import QPrintDialog, QPrinter, QPrinterInfo
 from PySide6.QtWidgets import (QAbstractItemView, QFileDialog, QGroupBox, QHBoxLayout, QHeaderView,
                                QLabel, QLineEdit, QMainWindow, QMessageBox, QPlainTextEdit,
@@ -163,6 +164,9 @@ class MainWindow(QMainWindow):
         self.print_btn = QPushButton("Save && Print…")
         self.open_btn = QPushButton("Open PDF")
         self.folder_btn = QPushButton("Show folder")
+        self.share_btn = QPushButton("Share by email…")
+        self.share_btn.setToolTip("Save the PDF, copy it, and start a new email to paste it into")
+        self.share_btn.clicked.connect(self.share_report)
         self.save_btn.clicked.connect(lambda: self.save_pdf(show_message=True))
         self.print_btn.clicked.connect(self.print_report)
         self.open_btn.clicked.connect(lambda: self._open(self.last_pdf))
@@ -170,7 +174,7 @@ class MainWindow(QMainWindow):
         self.print_btn.setDefault(True)
         actions.addWidget(self.new_btn)
         actions.addWidget(self.problem_label, 1)
-        for b in (self.open_btn, self.folder_btn, self.save_btn, self.print_btn):
+        for b in (self.open_btn, self.folder_btn, self.share_btn, self.save_btn, self.print_btn):
             actions.addWidget(b)
         lv.addLayout(actions)
         split.addWidget(left)
@@ -332,6 +336,7 @@ class MainWindow(QMainWindow):
         ok = not problems
         self.save_btn.setEnabled(ok)
         self.print_btn.setEnabled(ok)
+        self.share_btn.setEnabled(ok)
         self._debounce.start()
 
     def _problems(self) -> list[str]:
@@ -430,6 +435,26 @@ class MainWindow(QMainWindow):
             save_settings(self.cfg)
         report.print_report(printer, self._report_data(), self.cfg, self.style_, self.logo)
         self.statusBar().showMessage(f"Sent to {printer.printerName()}  (saved: {self.last_pdf})", 15000)
+
+    def share_report(self) -> None:
+        """Save the PDF, put the file on the clipboard and open a new email draft.
+
+        A mailto: link cannot carry an attachment, so the user pastes the file (Ctrl+V) into the draft.
+        """
+        if self._problems():
+            return
+        path = self.save_pdf()
+        if path is None:
+            return
+        mime = QMimeData()
+        mime.setUrls([QUrl.fromLocalFile(str(path))])
+        QGuiApplication.clipboard().setMimeData(mime)
+        data = self._report_data()
+        subject = f"Capacitor forming report - {data.performed_for or data.units[0].serial}"
+        body = f"Please find the capacitor forming report attached.\n\n({path.name})"
+        QDesktopServices.openUrl(QUrl(f"mailto:?subject={quote(subject)}&body={quote(body)}"))
+        self.statusBar().showMessage(
+            f"Report copied. Press Ctrl+V in the new email to attach it. (Saved: {path})", 20000)
 
     def _open(self, path: Path | None) -> None:
         if path:

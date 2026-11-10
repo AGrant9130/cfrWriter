@@ -205,3 +205,22 @@ def test_settings_dialog_roundtrip(qapp):
     assert [(c.name, c.include) for c in out.contacts] == [("A", True), ("B", False)]
     assert out.accent_override == "#123456" and out.last_printer == "HP"
     assert out.disclaimer.value.startswith("Reform")
+
+
+def test_share_copies_pdf_and_opens_email(qapp, tmp_path, monkeypatch):
+    from PySide6.QtGui import QDesktopServices, QGuiApplication
+    from cfrwriter.ui.main_window import MainWindow
+    opened = []
+    monkeypatch.setattr(QDesktopServices, "openUrl", lambda url: opened.append(bytes(url.toEncoded()).decode()) or True)
+    w = MainWindow(S.Settings(output_dir=str(tmp_path / "out"), first_run_done=True))
+    assert not w.share_btn.isEnabled()
+    w.load_log(EXAMPLE_LOG)
+    w.units_table.item(0, 2).setText("ATV630D30N4")
+    w.units_table.item(0, 3).setText("SER123")
+    w.performed_for.setText("Acme Motors")
+    assert w.share_btn.isEnabled()
+    w.share_report()
+    assert w.last_pdf and w.last_pdf.exists()
+    urls = QGuiApplication.clipboard().mimeData().urls()
+    assert [u.toLocalFile() for u in urls] == [str(w.last_pdf)]
+    assert len(opened) == 1 and opened[0].startswith("mailto:?subject=") and "Acme%20Motors" in opened[0]
